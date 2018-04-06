@@ -1,7 +1,7 @@
 {
-  "name": "node-js-getting-started",
-  "version": "0.3.0",
-  "description": "A sample Node.js app using Express 4",
+  "name": "clever-example-app",
+  "version": "0.1.0",
+  "description": "A barebones app that implements Sign Up with Clever, using NodeJS and Express 4",
   "engines": {
     "node": "8.9.1"
   },
@@ -11,8 +11,10 @@
     "test": "node test.js"
   },
   "dependencies": {
+    "async": "^2.6.0",
     "ejs": "^2.5.6",
-    "express": "^4.15.2"
+    "express": "^4.15.2",
+    "express-session": "^1.15.6"
   },
   "devDependencies": {
     "request": "^2.81.0",

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Clever example app</title>
+  <link href='/css/styles.css' rel='stylesheet'/>
+</head>
+<body class="p2">
+  <h1>Hello <%= me.name.first %> <%= me.name.last %>!</h1>
+  <p>You are a <%= user_type %>. Here are your classes:</p>
+  <% sections.forEach(function(section){ %>
+    <h3><%= section.data.name %></h3>
+    <div class="section-students">
+    <% section.data.students.forEach(function(student){ %>
+      <span class="student p2">
+        <%= student.data.name.first %> <%= student.data.name.last %>
+      </span>
+    <% }) %>
+    </div>
+  <% }) %>
+  <div class="mt3">
+    <a href="/logout">Log out</a>
+  </div>
+</body>
+</html>
