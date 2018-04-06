@@ -2,6 +2,8 @@
 
 A barebones app that implements SIgn Up With Clever, using [Node.js](http://nodejs.org/) and [Express 4](http://expressjs.com/).
 
+You can try it out yourself at https://clever-example-app.herokuapp.com/
+
 ## Running Locally
 
 Make sure you have [Node.js](http://nodejs.org/) and the [Heroku CLI](https://cli.heroku.com/) installed.
