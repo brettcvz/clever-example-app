@@ -26,9 +26,13 @@ The basic sequence to implement Sign Up with Clever is as follows:
 
 1. Add a "Sign Up with Clever" button to your application's signup page, that directs the user to the Clever `/oauth/authorize` endpoint with the correct parameters for your app. You can also add a "Log In with Clever" button that points to the same URL.  Button assets can be found in the [Clever Dev Docs](https://dev.clever.com/docs/identity-api#section-liwc-button-assets)
 2. Implement a route in your app to handle when the OAuth request returns from Clever, that dose the following:
+
     a. Exchanges a single-use `code` for a longer-lived `token` that can be used with the Clever API.
+
     b. Hits the `/v2.0/me` endpoint to get the user's Clever ID
+
     c. Checks to see a user with that Clever ID already exists. If so, log the user in to your app. If not, hit the Clever API to request the user's name, classes, etc. and create the corresponding user in your app.
+
 3. Send the now logged in user to your app's home page.
 
 At step 2.c., you may want to ask the user if they already have an existing account, and if so, if they want to associate their Clever ID with their existing account.
