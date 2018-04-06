@@ -1,123 +1,91 @@
-const req = require('request');
+const req = require('request-promise');
 const async = require('async');
 
 CLIENT_ID = process.env.CLEVER_CLIENT_ID;
 CLIENT_SECRET = process.env.CLEVER_CLIENT_SECRET;
 REDIRECT_URL = process.env.REDIRECT_URL;
 
-function runOAuthFlow(code, cb) {
+async function runOAuthFlow(code) {
   console.log("getting token");
-  getToken(code, (err, token) => {
-      if (err) { return cb(err); }
+  const token = await getToken(code);
 
-      console.log("getting me");
-      request('/me', token, function(err, data){
-          if (err) { return cb(err); }
+  console.log("getting me");
+  const response = await request('/me', token);
 
-          var data = data["data"];
-          console.log("me data", data);
-          var user = {
-              id: data.id,
-              type: data.type,
-              token: token
-          };
-          console.log("user data", data);
-          cb(undefined, user);
-      });
+  const data = response["data"];
+  console.log("me data", data);
+
+  console.log("user data", data);
+  return {
+      id: data.id,
+      type: data.type,
+      token: token
+  };
+}
+
+async function getToken(code) {
+  var auth = new Buffer(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64');
+  var token_options = {
+      url: 'https://clever.com/oauth/tokens',
+      headers: { 'Authorization': 'Basic ' + auth },
+      form: {
+          'code': code,
+          'grant_type': 'authorization_code',
+          'redirect_uri': REDIRECT_URL
+      },
+      method: 'POST',
+      json: true,
+  };
+
+  data = await req(token_options);
+  return data["access_token"];
+}
+
+async function request(route, token) {
+  var url = `https://api.clever.com/v2.0${route}`;
+
+  const data = req({
+    url: url,
+    headers: { 'Authorization': `Bearer ${token}` },
+    json: true,
   });
+
+  return data;
 }
 
-function getToken(code, cb) {
-    var auth = new Buffer(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64');
-    var token_options = {
-        url: 'https://clever.com/oauth/tokens',
-        headers: { 'Authorization': 'Basic ' + auth },
-        form: {
-            'code': code,
-            'grant_type': 'authorization_code',
-            'redirect_uri': REDIRECT_URL
-        },
-        method: 'POST'
-    };
-
-    req(token_options, function(err, resp, body) {
-        if (err) { return cb(err); }
-        data = JSON.parse(body);
-        cb(undefined, data['access_token']);
-    });
-}
-
-function request(route, token, cb) {
-    var url = `https://api.clever.com/v2.0${route}`;
-
-    req({
-        url: url,
-        headers: { 'Authorization': `Bearer ${token}` }
-    }, function(err, resp, body){
-        if (err) {return cb(err);}
-        var data;
-        try {
-            data = JSON.parse(body);
-        } catch (err) {
-            console.error(route, "Error parsing JSON:", body);
-            return cb(new Error("JSON parse error"));
-        }
-
-        if (data.error) {
-            return cb(new Error(`API Error: ${data.error}, ${body}`));
-        }
-        cb(undefined, data);
-    });
-}
-
-function getMyInfo(user_id, user_type, token, cb) {
+async function getMyInfo(user_id, user_type, token) {
   var route = `/${user_type}s/${user_id}`;
-  request(route, token, function(err, d){
-      if (err) {return cb(err);}
-      data = d["data"];
+  const response = await request(route, token);
 
-      return cb(undefined, data);
-  });
+  return response["data"];
 }
 
-function getMySections(user_id, user_type, token, cb) {
+async function getMySections(user_id, user_type, token) {
   var route = `/${user_type}s/${user_id}/sections`;
-  request(route, token, function(err, d){
-      if (err) {return cb(err);}
-      data = d["data"];
+  const response = await request(route, token);
 
-      return cb(undefined, data);
-  });
+  return response["data"];
 }
 
-function getMySectionsWithStudents(user_id, user_type, token, cb) {
+async function getMySectionsWithStudents(user_id, user_type, token) {
   var route = `/${user_type}s/${user_id}/sections`;
-  request(route, token, function(err, d){
-      if (err) {return cb(err);}
-      const sections = d["data"];
+  const response = await request(route, token);
 
-      // for every section, go fetch the data for each of its students
-      async.parallel(sections.map((s) => {
-        return (cb2) => {
-          getStudentsForSection(s.data.id, token, (err, students) => {
-            s.data.students = students;
-            cb2(err, s);
-          });
-        };
-      }), (err, sections_with_students) => {
-        return cb(undefined, sections_with_students);
-      });
-  });
+  const sections = response["data"];
+
+  // for every section, go fetch the data for each of its students
+  await Promise.all(sections.map(async (section) => {
+    section.data.students = await getStudentsForSection(section.data.id, token);
+  }));
+
+  return sections;
 }
 
-function getStudentsForSection(section_id, token, cb) {
+async function getStudentsForSection(section_id, token) {
   var route = `/sections/${section_id}/students`;
-  request(route, token, function(err, d){
-      if (err) {return cb(err);}
-      data = d["data"];
+  const response = await request(route, token);
 
-      return cb(undefined, data);
-  });
+  return response["data"];
 }
 
 module.exports = {

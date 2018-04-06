@@ -7,14 +7,15 @@
   },
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "env $(cat .env | xargs) node index.js",
     "test": "node test.js"
   },
   "dependencies": {
     "async": "^2.6.0",
     "ejs": "^2.5.6",
     "express": "^4.15.2",
-    "express-session": "^1.15.6"
+    "express-session": "^1.15.6",
+    "request-promise": "^4.2.2"
   },
   "devDependencies": {
     "request": "^2.81.0",
