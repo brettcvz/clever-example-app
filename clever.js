@@ -8,6 +8,7 @@ REDIRECT_URL = process.env.REDIRECT_URL;
 async function runOAuthFlow(code) {
   console.log("getting token");
   const token = await getToken(code);
+  console.log("1: " + token)
 
   console.log("getting me");
   const response = await request('/me', token);
@@ -24,7 +25,8 @@ async function runOAuthFlow(code) {
 }
 
 async function getToken(code) {
-  var auth = new Buffer(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64');
+  var auth =  Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64');
+  
   var token_options = {
       url: 'https://clever.com/oauth/tokens',
       headers: { 'Authorization': 'Basic ' + auth },
@@ -42,7 +44,7 @@ async function getToken(code) {
 }
 
 async function request(route, token) {
-  var url = `https://api.clever.com/v2.0${route}`;
+  var url = `https://api.clever.com/v3.0${route}`;
 
   const data = req({
     url: url,
@@ -57,6 +59,8 @@ async function getMyInfo(user_id, user_type, token) {
   var route = `/${user_type}s/${user_id}`;
   const response = await request(route, token);
 
+  console.log("Getting Info" + JSON.stringify(response));
+
   return response["data"];
 }
 
@@ -69,7 +73,9 @@ async function getMySections(user_id, user_type, token) {
 
 async function getMySectionsWithStudents(user_id, user_type, token) {
   var route = `/${user_type}s/${user_id}/sections`;
+
   const response = await request(route, token);
+  console.log("Getting Sections" + JSON.stringify(response));
 
   const sections = response["data"];
 
@@ -82,8 +88,10 @@ async function getMySectionsWithStudents(user_id, user_type, token) {
 }
 
 async function getStudentsForSection(section_id, token) {
-  var route = `/sections/${section_id}/students`;
+  var route = `/sections/${section_id}/users`;
   const response = await request(route, token);
+
+  console.log("Getting Users for Section" + JSON.stringify(response));
 
   return response["data"];
 }
