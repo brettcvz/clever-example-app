@@ -5,6 +5,7 @@ const path = require('path')
 // Making use of a lightweight library to wrap common Clever requests
 // For Clever libraries in other languages, see https://dev.clever.com/docs/libraries
 const clever = require("./clever");
+require('dotenv').config();
 
 const PORT = process.env.PORT || 5000
 
@@ -42,6 +43,8 @@ app.get('/', (req, res) => {
 
   const { me, user_type, sections } = req.session;
 
+  console.log("Redirecting...");
+
   // Pass this data to the html template to show to the user
   return res.render("index", {
     me,
@@ -71,17 +74,22 @@ app.get('/signup', (req, res) => {
 // Receiving the login back from Clever - we want to exchange the oauth code for a token that can be used to fetch
 // information about the user, like their name and what classes they teach
 app.get('/oauth', async (req, res) => {
-  var code = req.query.code;
-  const user = await clever.runOAuthFlow(code);
+  try{
+    var code = req.query.code;
+    const user = await clever.runOAuthFlow(code);
 
-  // If we already have the user, log them in, otherwise create the new user
-  if (userAlreadyExists(user)) {
-    // Great! The user already exists, so log them in
-    logInUser(req, user);
-  } else {
-    // We have a new user, create the user and log them in
-    await createUserAndSaveToDB(req, user);
-    logInUser(req, user);
+    // If we already have the user, log them in, otherwise create the new user
+    if (userAlreadyExists(user)) {
+      // Great! The user already exists, so log them in
+      logInUser(req, user);
+    } else {
+      // We have a new user, create the user and log them in
+      await createUserAndSaveToDB(req, user);
+      logInUser(req, user);
+    }
+  }
+  catch(e){
+    console.log(e)
   }
 
   // Now go back to the main page
